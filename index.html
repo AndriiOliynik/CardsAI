@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quiz App Pro - Mobile Ready</title>
+    <style>
+        :root {
+            --bg-color: #fcfcfc;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --panel-bg: #ffffff;
+            --btn-bg: #e0e0e0;
+            --border-color: #ccc;
+            --balloon-stage-bg: #e3f2fd;
+            --modal-bg: rgba(0,0,0,0.8);
+            --modal-content-bg: #ffffff;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --panel-bg: #1e1e1e;
+            --btn-bg: #333333;
+            --border-color: #444;
+            --balloon-stage-bg: #1a2634;
+            --modal-bg: rgba(0,0,0,0.9);
+            --modal-content-bg: #1e1e1e;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            margin: 0; padding: 10px 5px 80px 5px; 
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #dictInfoPanel {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2196F3;
+            margin: 5px 0 2px 0;
+            text-align: center;
+        }
+
+        #questionContainer { 
+            width: 100%; 
+            max-width: 500px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            min-height: 60px;
+        }
+        
+        h3 { 
+            text-align: center; 
+            padding: 0 10px; 
+            font-size: 19px; 
+            width: 100%;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.3;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .replay-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            line-height: 1;
+            transition: transform 0.1s;
+        }
+        .replay-btn:active {
+            transform: scale(1.2);
+        }
+
+        button { 
+            margin: 5px 2px; padding: 10px 12px; border: none; border-radius: 10px; 
+            cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; 
+            touch-action: manipulation; 
+            color: var(--text-color);
+            background-color: var(--btn-bg);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        button.answerBtn { 
+            background-color: var(--btn-bg); 
+            width: 95%; 
+            max-width: 380px; 
+            min-height: 50px; 
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            padding: 10px;
+        }
+
+        .mode-btn { background-color: var(--panel-bg); border: 1px solid var(--border-color); font-size: 13px; padding: 6px 10px; }
+        .ctrl-btn { font-size: 11px !important; padding: 6px 8px !important; margin: 2px !important; flex: 1; max-width: fit-content; }
+        .group-nav-btn { background: #2196F3 !important; color: white !important; font-size: 12px !important; padding: 6px 10px !important; }
+
+        input[type="text"], input[type="number"], input[type="password"] { 
+            padding: 10px; font-size: 16px; border-radius: 10px; border: 2px solid var(--border-color); 
+            width: 90%; max-width: 320px; outline: none; margin: 5px 0; text-align: center;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            box-sizing: border-box;
+        }
+
+        .letter-pool { 
+            display: flex; flex-wrap: wrap; justify-content: center; 
+            gap: 4px; margin-top: 10px; width: 100%; max-width: 420px; 
+        }
+        .letter-btn { 
+            background: #8e24aa; color: white; 
+            flex: 0 1 calc(16% - 4px); 
+            aspect-ratio: 1/1; min-width: 38px; max-width: 50px;
+            padding: 0; font-size: 20px; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; 
+            border: 2px solid black !important;
+            box-shadow: 0 3px 0px #4a148c;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        }
+        .letter-btn.space-btn {
+            background: rgba(255,255,255,0.5); border: 2px dashed black !important;
+            box-shadow: 0 3px 0px #999; text-shadow: none;
+        }
+        .letter-btn.wrong-letter {
+            background: #d32f2f !important;
+            box-shadow: 0 3px 0px #b71c1c !important;
+        }
+
+        .card-scene { width: 95%; max-width: 350px; height: 200px; perspective: 1000px; margin: 15px 0; }
+        .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.is-flipped { transform: rotateY(180deg); }
+        .card__face {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(16px, 5vw, 22px); font-weight: bold; border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 3px solid #4CAF50;
+            padding: 15px; text-align: center; background: var(--card-bg); box-sizing: border-box;
+            overflow-wrap: break-word; color: var(--text-color);
+        }
+        .card__face--back { background: var(--card-bg); transform: rotateY(180deg); border-color: #2196F3; }
+
+        .error-hint { 
+            background: #ffebee; padding: 12px; border-radius: 12px; margin-top: 10px; 
+            font-size: 15px; text-align: center; font-weight: bold; 
+            border: 2px solid #d32f2f; width: 95%; max-width: 350px;
+            word-wrap: break-word; color: #333;
+        }
+
+        .txt-red { color: #d32f2f; }
+        .txt-purple { color: #8e24aa; text-decoration: underline; }
+
+        .nav-controls { margin-top: 15px; display: flex; gap: 10px; width: 100%; justify-content: center; }
+        
+        .settings-panel { 
+            font-size: 13px; background: var(--panel-bg); padding: 15px; border-radius: 15px; 
+            width: 95%; max-width: 360px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px; box-sizing: border-box; border: 1px solid var(--border-color);
+        }
+        .slider-val { font-weight: bold; color: #2196F3; float: right; }
+        select { padding: 6px; border-radius: 5px; width: 100%; margin-top: 5px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); }
+        input[type="range"] { width: 100%; margin: 8px 0; }
+
+        #score { font-size: 16px; font-weight: bold; margin: 10px; text-align: center; }
+        
+        .lang-toggle {
+            background: var(--btn-bg); color: var(--text-color); padding: 4px 8px; border-radius: 6px; font-size: 11px;
+            margin-bottom: 5px; display: inline-block; border: 1px solid var(--border-color);
+        }
+
+        #balloonStage {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 450px;
+            background: var(--balloon-stage-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            display: none;
+            border: 2px solid #bbdefb;
+            margin-top: 10px;
+        }
+
+        .balloon {
+            position: absolute;
+            width: 85px;
+            height: 105px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: inset -5px -10px rgba(0,0,0,0.15);
+            box-sizing: border-box;
+            z-index: 10;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.1;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .popped { animation: pop 0.3s forwards; pointer-events: none; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .wrong-shake { animation: shake 0.3s; background: #555 !important; }
+
+        code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        
+        .word-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .action-btn-icon {
+            font-size: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: 1px solid var(--border-color);
+        }
+        .learned-btn {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        .learned-btn.is-learned {
+            background-color: #4CAF50 !important;
+            color: white !important;
+        }
+        .add-db-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        .add-db-btn.in-db {
+            background-color: #9c27b0;
+            color: white;
+        }
+        
+        .db-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 4px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 8px;
+        }
+        .db-item-ops {
+            display: flex;
+            gap: 4px;
+        }
+        .db-op-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 5px;
+            margin: 0;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .close-icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0 8px;
+            margin: 0;
+            line-height: 1;
+            color: var(--text-color);
+        }
+        .close-icon-btn:hover {
+            color: #d32f2f;
+        }
+
+        .edit-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .edit-form-group label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .edit-form-group input, .edit-form-group select {
+            width: 100%;
+            max-width: 100%;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .collapsible-section {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+        .collapsible-title {
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+    <script>
+        // --- INDEXED DB ENGINE (з підтримкою langPair) ---
+        let db = null;
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("QuizAppWordsDB", 2);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    let store;
+                    if (!database.objectStoreNames.contains("words")) {
+                        store = database.createObjectStore("words", { keyPath: "id", autoIncrement: true });
+                    } else {
+                        store = e.target.transaction.objectStore("words");
+                    }
+                    if (!store.indexNames.contains("level")) store.createIndex("level", "level", { unique: false });
+                    if (!store.indexNames.contains("topic")) store.createIndex("topic", "topic", { unique: false });
+                    if (!store.indexNames.contains("learned")) store.createIndex("learned", "learned", { unique: false });
+                    if (!store.indexNames.contains("word")) store.createIndex("word", "word", { unique: false });
+                    if (!store.indexNames.contains("langPair")) store.createIndex("langPair", "langPair", { unique: false });
+                };
+                request.onsuccess = (e) => { 
+                    db = e.target.result; 
+                    resolve(db); 
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        async function saveWordsToDB(wordsList) {
+            if (!db) await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("words", "readwrite");
+                const store = tx.objectStore("words");
+                wordsList.forEach(w => {
+                    store.add({
+                        word: (w.word || "").trim(),
+                        translation: (w.translation || "").trim(),
+                        level: (w.level || "A1").toUpperCase().trim(),
+                        topic: (w.topic || "General").trim(),
+                        langPair: (w.langPair || activeDictPair || "en-pl").toLowerCase().trim(),
+                        learned: w.learned !== undefined ? Boolean(w.learned) : false
+                    });
+                });
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e);
+            });
+        }
+
+        async function addSingleWordToDB(word, translation, level = "A1", topic = "General", langPair = activeDictPair, learned = false) {
+            if (!db) await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("words", "readwrite");
+                const store = tx.objectStore("words");
+                const req = store.add({
+                    word: word.trim(),
+                    translation: translation.trim(),
+                    level: level.toUpperCase().trim(),
+                    topic: topic.trim(),
+                    langPair: (langPair || "en-pl").toLowerCase().trim(),
+                    learned: Boolean(learned)
+                });
+                req.onsuccess = (e) => resolve(e.target.result);
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        async function updateWordInDB(id, word, translation, level, topic, langPair, learned) {
+            if (!db) await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("words", "readwrite");
+                const store = tx.objectStore("words");
+                const req = store.put({
+                    id: Number(id),
+                    word: word.trim(),
+                    translation: translation.trim(),
+                    level: level.toUpperCase().trim(),
+                    topic: topic.trim(),
+                    langPair: (langPair || "en-pl").toLowerCase().trim(),
+                    learned: Boolean(learned)
+                });
+                req.onsuccess = () => resolve();
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        async function deleteWordFromDB(id) {
+            if (!db) await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("words", "readwrite");
+                const store = tx.objectStore("words");
+                const req = store.delete(Number(id));
+                req.onsuccess = () => resolve();
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        async function getAllDBWords() {
+            if (!db) await initDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction("words", "readonly");
+                const store = tx.objectStore("words");
+                const req = store.getAll();
+                req.onsuccess = () => {
+                    const res = req.result || [];
+                    res.forEach(item => {
+                        if (!item.langPair) item.langPair = "en-pl";
+                    });
+                    resolve(res);
+                };
+            });
+        }
+
+        async function updateWordLearnedStatus(id, learned) {
+            if (!db || !id) return;
+            const tx = db.transaction("words", "readwrite");
+            const store = tx.objectStore("words");
+            const getReq = store.get(Number(id));
+            getReq.onsuccess = () => {
+                const data = getReq.result;
+                if (data) {
+                    data.learned = learned;
+                    store.put(data);
+                }
+            };
+        }
+
+        async function clearDB() {
+            if (!db) await initDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction("words", "readwrite");
+                tx.objectStore("words").clear();
+                tx.oncomplete = () => resolve();
+            });
+        }
+
+        // --- GROQ AI INTEGRATION (Визначення рівня та теми) ---
+        async function fetchWordAIInfo(word, translation) {
+            const apiKey = document.getElementById('groqApiKeyInput')?.value.trim() || localStorage.getItem('groq_api_key');
+            if (!apiKey) {
+                alert("Будь ласка, введіть ваш безкоштовний Groq API ключ у налаштуваннях бази даних нижче!");
+                return null;
+            }
+            
+            // Зберігаємо ключ у localStorage для зручності
+            localStorage.setItem('groq_api_key', apiKey);
+
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "qwen/qwen3.8-27b",
+                        messages: [
+                            {
+                                role: "system",
+                                content: "Ти лінгвістичний асистент. Визнач рівень CEFR (наприклад A1, A2, B1, B2, C1, C2) та коротку основну тему (наприклад Travel, Food, Appearance тощо) для слова. Поверни відповідь СУВОРО у форматі JSON без зайвого тексту: {\"level\": \"...\", \"topic\": \"...\"}"
+                            },
+                            {
+                                role: "user",
+                                content: `Визнач рівень CEFR та основну тему для слова ${word} (переклад: ${translation})`
+                            }
+                        ],
+                        temperature: 0.1
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP помилка: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    return JSON.parse(jsonMatch[0]);
+                }
+                throw new Error("Не вдалося розібрати JSON відповідь від ШІ");
+            } catch (e) {
+                alert("Помилка запиту до Groq API: " + e.message);
+                return null;
+            }
+        }
+
+        async function autoDetectWordAI(id, word, translation) {
+            const btn = document.getElementById(`ai-btn-${id}`);
+            if (btn) btn.innerText = "⏳";
+            
+            const res = await fetchWordAIInfo(word, translation);
+            if (res && res.level && res.topic) {
+                const dbWords = await getAllDBWords();
+                const target = dbWords.find(w => w.id === id);
+                if (target) {
+                    await updateWordInDB(id, target.word, target.translation, res.level.toUpperCase(), res.topic, target.langPair, target.learned);
+                    refreshDBFilters();
+                }
+            } else {
+                if (btn) btn.innerText = "🤖";
+            }
+        }
+
+        // --- ДАНІ СЛОВНИКІВ ---
+        const vocabularyList1 = `appearance;wygląd;зовнішність
+bald;łysy;лисий
+beard;broda;борода
+beauty;pięknie, uroda;краса
+blond hair;blond włosy;світле волосся
+broad shouldered;barczysty;широкоплечий
+build;budowa ciała;статура
+bunches;pęczki;хвостики (зачіска)
+clean-shaven;gładko ogolony;гладко поголений
+complexion;cera;колір обличчя
+dark-haired;ciemnowłosy;темноволосий
+dark-skinned;ciemnoskóry;темношкірий
+designer glasses;okulary;дизайнерські окуляри
+dimples;dołeczki;ямочки (на щоках)
+elderly;starszy;літній / похилого віку
+facial hair;zarost;рослинність на обличчі
+fair hair;jasne włosy;світле / русяве волосся
+features;rysy twarzy;риси обличчя
+freckles;piegi;ластовиння
+good-looking;przystojny;привабливий
+gorgeuos;przepiękny;розкішний / чудовий
+grey hair;popielate włosy;сиве волосся
+handsome;przystojny;красивий (про чоловіка)
+height;wysokość;зріст
+high forhead;wysoki czoło;високе чоло
+hollow-cheeked;pusty policzek;із запалими щоками
+image;obraz / wizerunek;образ / імідж
+moustache;wąsy;вуса
+muscular;muskularny;м'язистий
+overweight;z nadwagą;з надмірною вагою
+pale;blady;блідий
+piercing;przeszywający;пірсинг
+plain;przeciętny;простий / непоказний
+plump;puszysty / pulchny;повненький
+ponytail;koński ogon;кінський хвіст
+scar;blizna;шрам
+scarred;pokryty bliznami;у шрамах
+short;niski;низький / короткий
+short-haired;krótkowłosy;короткошерстий / коротковолосий
+shoulder-length;do ramion;довжиною до плечей
+skinny;bardzo chudy;дуже худий
+slim;szczupły;стрункий
+spots;krosty;прищі / плями
+spotty;łaciaty;прищавий
+straight;proste;прямий
+stubble;kilkudniowy zarost;щетина
+tallish;wysoki;досить високий
+tanned;opalony;засмаглий
+tattoo;tatuaż;татуювання
+tubby;baryłkowaty;огрядний / пухкий
+ugly;brzydki;потворний
+wavy hair;falowane włosy;хвилясте волосся
+wear braces;nosić szelki;носити брекети
+wear lipstick;nosić szminkę;користуватися помадою
+well-built;добре zbudowany;добре складений
+wrinkled;pomarszczony;зморшкуватий
+wrinkles;zmarszczki;зморшки
+youngish;dość młody;молодуватий
+fashion designer;projektant mody;модельєр
+persuade sb;przekonać kogoś;переконувати когось
+pop-up advert;wyskakująca reklama;спливаюча реклама
+smell;zapach;пахнути / запах
+wolly jumper;wilczy sweter;вовняний джемпер
+airbrushing;retuszowanie zdjęć;ретушування (фото)
+bracelet;bransoletka;браслет
+casual;nieformalny;повсякденний
+cotton suit;bawełniany garnitur;бавовняний костюм
+designer dress;designerska sukienka;дизайнерська сукня
+elegant;elegancki;елегантний
+fashion show;pokaz mody;показ мод
+high-heeled shoes;buty na wysokich obcasach;туфлі на wysokich підборах
+hole;dziura, otwór;дірка / отвір
+knee-lenght skirt;spódnica do kolan;спідниця до колін
+open-toed sandals;sandały z odkrytymi palcami;босоніжки з відкритим носком
+scruffy;nieporządny, niechlujny;неохайний
+skinny jeans;rurki;вузькі джинси (скіні)
+smart;bystry;охайний / елегантний
+striped shirt;koszula w paski;сорочка в смужку
+stuff;rzeczy;речі / мотлох
+the red carpet;czerwony dywan;червона доріжка
+tie;krawat;краватка
+tight-fitting jacket;obcisła kurtka;облягаючий жакет
+tights;rajstopy;колготки
+tight;obcisły;вузький / тісний
+trendy;modny;модний
+V-neck jumper;Sweter z dekoltem w szpic;джемпер з V-подібним вирізом
+wardrobe;szafa;гардероб
+fancy doing sth;fantazyjne robienie czegoś;хотіти щось зробити
+fashion model;modelka;фотомодель
+get tired of sth;znudzi się czymś;втомлюватися від чогось
+offer to do sth;zaoferować zrobienie czegoś;пропонувати щось зробити
+prevent sb from doing sth;uniemożliwiać komuś zrobienie czegoś;заважати комусь щось робити
+warn sb not to do sth;ostrzegać kogoś, aby nie robić czegoś;попереджати когось не робити чогось
+absolutely;absolutnie;абсолютно
+boiling;wrzący;дуже спекотно
+boycott;bojkot;bojkot
+break down in tears;wybuchać płaczem;розридатися
+care about the idea of sth;dbać o pomysł czegoś;перейматися ідеєю чогось
+chain store;sklep sieciowy;мережевий магазин
+clothing companes;firmy odzieżowe;компанії з виробництва одягу
+concrete;beton;бетон
+delicious;pyszny;дуже смачний
+delighted;zachwycony;захоплений
+devastated;zniszczony;спустошений
+die of hunger;umrzeć z głodu;помирати з голоду
+employ;zatrudniać;наймати
+exhausted;wyczerpany;виснажений
+exploit;wykorzystać;експлуатувати
+extremely;bardzo / ekstremalnie;надзвичайно
+fair trade;sprawiedliwy handel;справедлива торгівля
+fascinating;fascynujący;захоплюючий
+fashion industry;przemysł mody;індустрія моди
+filthy;obrzydliwy;дуже брудний
+grateful;wdzięczny;вдячний
+horrified;przerażony;нажаханий
+huge;ogromny;величезний
+inhumane;niehumanitarny;нелюдський
+lead;1. ołów 2. smycz;вести (за собою) / олово
+a miserable life;żałosne życie;жалюгідне життя
+make profit;zarabiać;отримувати прибуток
+miserable;biedny / nieszczęśliwy / załamany;нещасний / жалюгідний
+pay a high price;zapłacić wysoką cenę;платити високу ціну
+sleepless night;bezsenna noc;безсонна ніч
+starving;głodujący;дуже голодний
+sweatshop;Sweatshop;потогонне виробництво
+take action against sth;podjąć działania przeciwko czemuś;вживати заходів проти чогось
+terrified;przerażony;наляканий
+underage;niepełnoletni;неповнолітній
+unethical;nieetyczny;неетичний
+working conditions;warunki pracy;умови праці
+appealing;pociągający;привабливий
+have an argument;mieć argument;сперечатися / сваритися
+stressed out;zestresowany;виснажений стресом
+bright colours;jasne kolory;яскраві кольори
+come across as;natknąć się na;здаватися / справляти враження
+ginger hair;rude włosy;руде волосся
+have fantastic taste in clothes;mają fantastyczny gust w ubraniach;мати чудовий смак в одязі
+incredibly;niesłychanie;неймовірно
+outfit;ubiór / strój;вбрання / одяг
+outgoing;otwarty / towarzyski;товариський
+square;plac;площа / квадратний
+associated with;związany z;пов'язаний з
+curly hair;kręcone włosy;кучеряве волосся
+easygoing;Na luzie;легкий у спілкуванні
+flowery;ukwiecony;у квіточку
+fringe;grzywka;чубчик
+give the impression;sprawiać wrażenie;справляти враження
+hairstyle;fryzura;зачіска
+medium-lenght hair;włosy średniej długości;волосся середньої довжини
+neat;schludny;охайний
+open-minded;o szerokich horyzontach;відкритий до нового
+self-confident;pewny siebie;впевнений у собі
+shade;cień;відтінок / тінь
+texture;tekstura;tekstura
+wear makeup;nosić makijaż;користуватися косметикою
+be down to common sense;kierować się zdrowym rozsądkiem;залежати від здорового глузду
+dye your hair blond;ufarbuj włosy na blond;пофарбувати волосся у блонд
+grow a moustache;zapuścić wąsy;відростити вуса
+have influence on sb;mieć wpływ na kogoś;мати вплив на когось
+have your lip pierced;przebij swoją wargę;проколоти губу
+paint your nails red;pomaluj paznokcie na czerwono;нафарбувати нігті червоним
+put on your make-up;nałóż makijaż;наносити макіяж
+send out the wrong message;wyślij niewłaściwą wiadomość;давати хибний сигнал
+shave off your beard;ogol brodę;зголити бороду
+staighten your hair;wyprostuj włosy;випрямляти волосся
+tell the difference;powiedz różnicę;бачити різницю
+wear contant lenses;nosić soczewki kontaktowe;носити контактні лінзи`;
+
+        const vocabularyList2 = `accommodation;mieszkanie, zakwaterowanie;помешкання, житло
+activity holiday;aktywny wypoczyнок;активний відпочинок
+all-inclusive holiday;wczasy all-inclusive;відпочинок "все включено"
+bed and breakfast;pensjonat;пансіонат / готель із сніданком
+cabin;kajuta;каюта
+camp;obóz, biwak;табір, кемпінг
+campsite;pole namiotowe;наметове містечко
+caravan;przyczepa kempingowa;будинок на колесах
+chalet;domek w górach;гірський будиночок
+check something out;wypróbować coś;випробувати / перевірити щось
+city break;krótki wyjazd turystyczny do dużego miasta;короткі міські канікули
+cruise;rejs wycieczkowy;круїз
+cruise ship;statek wycieczkowy;круїзний лайнер
+fall over;przewrócić się;впасти / перечепитися
+five-star hotel;hotel pięciogwiazdkowy;п'ятизірковий готель
+get seasick;dostać choroby morskiej;отримати морську хворобу
+go camping;pojechać na biwak;йти у похід з наметами
+go down the slope;zjeżdżać ze stoku;спускатися зі схилу
+go on a day trip;pojechać na wycieczkę jednodniową;йти на одноденну екскурсію
+go on a tour;jechać na wycieczkę objazdową;вирушити в тур
+go on an excursion;jechać na wycieczkę;їхати на екскурсію
+guide;przewodnik, oprowadzać;гід, проводити екскурсію
+horrid;okropny;жахливий
+package holiday;wczasy zorganizowane;турпакет / організований відпочинок
+pay extra;płacić dodatkowo;платити додатково
+porthole;bulaj, okienko na statku;ілюмінатор
+tent;namiot;намет
+weatherproof;odporny na warunki atmosferyczne, impregnowany;водонепроникний / всепогодний
+wildlife park;rezerwat przyrody;заповідник дикої природи
+winter holiday;ferie zimowe;зимові канікули
+youth hostel;schronisko młodzieżowe;молодіжний хостел
+go off;włączyć się;спрацювати (про сигналізацію)
+oversleep;zaspać;проспати
+seaside town;nadmorskie miasteчко;приморське містечко
+souvenir shop;sklep z pamiątkami;сувенірна крамниця
+splash;ochlapać, popryskać;забризкати, розбризкувати
+rough;wzburzony (o morzu);штормове, бурхливе (море)
+see lots of sights;dużo zwiedzać;оглядати багато визначних місць
+sleeping bag;śpiwór;спальний мішок
+staycation;wakacje spędzane w domu;відпустка вдома
+stop at many ports;zawijać do wielu portów;заходить у багато портів
+sunbathe;opalać się;засмагати
+break down;zepsuć się;зламатися
+bugbear;szkopuł, problem;кам'яний горішок / проблема
+check in;zameldować się;зареєструватися
+check out;wymeldować się;виселитися
+coach;autokar;туристичний автобус
+delayed;opóźniony;затриманий
+destination;cel podróży;місце призначення
+disastrous;fatalny, katastrofalny;катастрофічний
+get on (the bus, train, plane);wsiąść (do autobusu, pociągu, samolotu);сідати (на автобус, потяг, літак)
+get off (the bus, train, plane);wysiadać (z autobusu, pociągu, samolotu);виходити з (автобуса, pociąga, літака)
+long-term risks;długotrwałe ryzyko;довгострокові ризики
+pick somebody up;podjechać po kogoś;підвезти / забрати когось
+queue up / stand in line;stać w kolejce;стояти в черзі
+see somebody off;odprowadzić kogoś, pożegnać kogoś;проводжати когось
+set out / off;wyruszać, rozpoczynać podróż;вирушати в дорогу
+sympathetic;pełen współczucia;співчутливий
+take off;wystartować (o samolocie);злітати (про літак)
+upcoming;zbliżający się, nadchodzący;майбутній / наступний
+weekend outing;wypad weekendowy;вікенд-поїздка
+work something out;rozwiązać, zrozumieć, ustalić coś;зрозуміти / вирішити щось
+guidebook;przewodnik (książką);путівник (книга)
+phrase book;rozmówki;розмовник
+adjust;wyregulować;налаштувати / відрегулювати
+adventurous;żądny przygód;авантюрний / любитель пригод
+board the plane;wejść na pokład samolotu;сідати на борт літака
+boarding pass;karta pokładowa;посадковий талон
+camper;samochód kampingowy;кемпер
+cancelled flight;odwołany lot;скасований рейс
+canoe;kajak, pływać kajakiem;каное, каноінг
+carve;wyryć;вирізати / карбувати
+charge;ładować (baterię);заряджати (акумулятор)
+concern for something;troska o coś;турбота про чогось
+cope;poradzić sobie;впоратися
+crew;załoga;экіпаж / команда
+cross the ocean;przepłynąć ocean;перетнути океан
+cruise liner;statek wycieczkowy;круїзний лайнер
+current;prąd morski;течія
+debris;szczątki, śmieci;уламки / сміття
+depart on time;odjeżdżać o czasie;відправлятися вчасно
+document;dokumentować;документувати
+draw attention to something;zwracać uwagę na coś;przyciągaти увагу до чогось
+drinking water;woda pitna;питна вода
+emergency situation;sytuacja awaryjna;надзвичайна ситуація
+endurance;wytrzymałość;витривалість
+fear;bać się;боятися
+find the courage;zdobyć się na odwagę;знайти в собі хоробрість
+fishing net;sieć rybacka;рибальська сітка
+fit;wyposażyć;обладнати
+float;unosić się na wodzie;триматися на воді
+flow;płynąć;текти
+fundraiser;zbiórka pieniędzy;благодійний збір
+get a flat tyre;złapać gumę;пробити колесо
+get lost;zgubić się;заблукати
+get stuck in a traffic jam;utknąć w korku;застрягнути в заторі
+have a narrow escape;cudem uniknąć nieszczęścia;ледь уникнути лиха
+holidaymaker;wczasowicz;відпочивальник
+luxurious;luksusowy, komfortowy;розкішний
+man-made pollution;zanieczyszczenie środowiska spowodowane przez człowieka;антропогенне забруднення
+marine life;flora i fauna morska;морська флора та фауна
+miss the train;spóźnić się na pociąg;запізнитися на потяг
+morbidly;makabrycznie;хворобливо
+near-death experience;doświadczenie bliskiej śmierci;досвід близької смерті
+packaging;opakowanie;упаковка
+paddle;wiosło, wiosłować;весло, веслувати
+paddle boat;łódź wiosłowa;човен з веслами
+pay off;opłacać się;виправдовуватися / окупатися
+prove yourself;wykazać się;довести себе / проявити
+race;ścigać się;змагатися у швидкості
+raise awarness about something;zwiększyć świadomość czegoś;підвищувати обізнаність
+remains;pozostałości, szczątki;останки / залишки
+rig the boat;założyć olinowanie;оснастити човен
+risk your life;ryzykować życie;ризикувати життям
+run out of something;wyczerpać zapasy czegoś;закінчуватися
+sail solo;żeglować w pojedynkę;ходити під вітрилом подинцем
+sailing boat;żaglówka;вітрильник
+sailor;żeglarz;моряк
+shipwreck;zatonąć;зазнати катастрофи
+struggles;zmagania;труднощі / боротьба
+supplies;zapasy, zaopatrzenie;припаси
+tie a knot;zawiązać węzeł;зав'язати вузол
+unhurt;cały i zdrów;неушкоджений
+voyage;rejs;морська подорож
+watertight compartment;komora wodoszczelna;водонепроникний відсік
+cover / include;obejmować;покривати / включати
+discount;zniżka, rabat;знижка
+experience;doświadczyć;досвід / відчувати
+take a ride;pojechać na przejażdżkę;прокататися
+transfer form the airport;przejazd z lotniska;трансфер з аеропорту
+combine;łączyć;поєднувати
+hitchhiking;podróżowanie autostopem;автостоп
+immigrant;imigrant;іммігрант
+rewarding;dający satysfakcję;вартий зусиль
+book;rezerwować;бронювати
+enjoyable;przyjemny;przyjemny
+land;wylądować;приземлятися
+all set for something;w pełni gotowy na coś;цілком gotowy до чогось
+at sea;na morzu;у морі
+by air;drogą lotniczą;повітрям
+by land;drogą lądową;сушею
+by mistake;przez pomyłkę;через помилку
+count down the days;odliczać dni;рахувати дні
+get away from it all;oderwać się od szarej rzeczywistości;втекти від буденності
+have the time of your life;bawić się jak nigdy w życiu;чудово проводити час
+hit the road;wyruszyć w drogę;вирушити в дорогу
+in danger;w niebezpieczeństwie;у небезпеці
+in pain;cierpiący z bólu;відчувати біль
+in the middle of nowhere;na odludziu, w szczerym polu;казна-де / у глушині
+make the most of your time;w pełni wykorzystać czas;максимально використати час
+on arrival;w chwili przybycia, po przyjeździe;після przybycia
+on business;w interesach;у справах
+on foot;na piechotę;пішки
+on the way;po drodze;po дорозі
+post-holiday depression;powakacyjna chandra;післявідпусткова депресія
+soak up the sun;wygrzewać się na słońcu;грітися на сонці
+under pressure;pod presją;під тиском
+unwind / let your hair down;wyluzować;розслабитися
+feel carsick;mieć chorobę lokomocyjną;відчувати укачування`;
+
+        let activeDictPair = 'en-pl';
+        let currentGroupIndex = -1;
+        let totalGroups = 0;
+        let currentDictName = '';
+        let wordsPerGroup = 20;
+        
+        let questions = [];
+        let currentQuestionIndex = -1;
+        let score = 0;
+        let scoreError = 0;
+        let voices = [];
+        let selectedVoiceIndex = 0;
+        let selectedAnsVoiceIndex = 0;
+        let speechRate = 1;
+        let QRate = 3500;
+        let swapped = false;
+        let inputMode = false;
+        let builderMode = false;
+        let timer = null;
+        let timeLeft = 60;
+        let currentMode = 'standard';
+        let builderCurrentIndex = 0;
+        let builderWrongCount = 0;
+        let currentLang = 'en';
+        let currentAnsLang = 'pl';
+        let baseSourceLang = 'en';
+        let baseTargetLang = 'pl';
+        let balloonIntervals = [];
+
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playClickSound(type = 'correct') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.connect(g); g.connect(ctx.destination);
+                osc.frequency.setValueAtTime(type === 'correct' ? 600 : 150, ctx.currentTime);
+                g.gain.setValueAtTime(0.1, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                osc.start(); osc.stop(ctx.currentTime + 0.1);
+            } catch(e) {}
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function updateEffectiveLangs() {
+            if (swapped) {
+                currentLang = baseTargetLang;
+                currentAnsLang = baseSourceLang;
+            } else {
+                currentLang = baseSourceLang;
+                currentAnsLang = baseTargetLang;
+            }
+            const langBtn = document.getElementById('langBtn');
+            const ansLangBtn = document.getElementById('ansLangBtn');
+            if (langBtn) langBtn.innerText = currentLang.toUpperCase();
+            if (ansLangBtn) ansLangBtn.innerText = currentAnsLang.toUpperCase();
+        }
+
+        function toggleSwap() {
+            swapped = !swapped;
+            updateEffectiveLangs();
+            populateVoices();
+            displayQuestion();
+        }
+
+        function populateVoices() {
+            voices = window.speechSynthesis.getVoices();
+            
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (voiceSelect) {
+                voiceSelect.innerHTML = '';
+                let filtered = voices.filter(v => v.lang.toLowerCase().includes(currentLang));
+                filtered.sort((a, b) => a.name.toLowerCase().includes('google') ? -1 : 1);
+                filtered.forEach((v) => {
+                    const opt = document.createElement('option');
+                    opt.value = voices.indexOf(v);
+                    opt.textContent = `${v.name} (${v.lang})`;
+                    voiceSelect.appendChild(opt);
+                });
+                if (filtered.length > 0) {
+                    selectedVoiceIndex = voices.indexOf(filtered[0]);
+                    voiceSelect.value = selectedVoiceIndex;
+                }
+            }
+
+            populateAnsVoices();
+        }
+
+        function populateAnsVoices() {
+            const ansVoiceSelect = document.getElementById('ansVoiceSelect');
+            if (ansVoiceSelect) {
+                ansVoiceSelect.innerHTML = '';
+                let filteredAns = voices.filter(v => v.lang.toLowerCase().includes(currentAnsLang));
+                filteredAns.sort((a, b) => a.name.toLowerCase().includes('google') ? -1 : 1);
+                filteredAns.forEach((v) => {
+                    const opt = document.createElement('option');
+                    opt.value = voices.indexOf(v);
+                    opt.textContent = `${v.name} (${v.lang})`;
+                    ansVoiceSelect.appendChild(opt);
+                });
+                if (filteredAns.length > 0) {
+                    selectedAnsVoiceIndex = voices.indexOf(filteredAns[0]);
+                    ansVoiceSelect.value = selectedAnsVoiceIndex;
+                }
+            }
+        }
+        window.speechSynthesis.onvoiceschanged = populateVoices;
+
+        function toggleLang() {
+            if (activeDictPair === 'en-pl') baseSourceLang = (baseSourceLang === 'pl' ? 'en' : 'pl');
+            else if (activeDictPair === 'en-uk') baseSourceLang = (baseSourceLang === 'uk' ? 'en' : 'uk');
+            else if (activeDictPair === 'pl-uk') baseSourceLang = (baseSourceLang === 'uk' ? 'pl' : 'uk');
+            else baseSourceLang = (baseSourceLang === 'pl' ? 'en' : 'pl');
+
+            updateEffectiveLangs();
+            populateVoices();
+        }
+
+        function toggleAnsLang() {
+            if (baseTargetLang === 'pl') baseTargetLang = 'en';
+            else if (baseTargetLang === 'en') baseTargetLang = 'uk';
+            else baseTargetLang = 'pl';
+
+            updateEffectiveLangs();
+            populateAnsVoices();
+        }
+
+        function speakText(text) {
+            if (!text) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (voices[selectedVoiceIndex]) utterance.voice = voices[selectedVoiceIndex];
+            
+            if (currentLang === 'pl') utterance.lang = 'pl-PL';
+            else if (currentLang === 'uk') utterance.lang = 'uk-UA';
+            else utterance.lang = 'en-US';
+
+            utterance.rate = speechRate;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakAnswerText(text) {
+            const speakAnsEnabled = document.getElementById('speakAnsToggle')?.checked;
+            if (!speakAnsEnabled || !text) return;
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (voices[selectedAnsVoiceIndex]) utterance.voice = voices[selectedAnsVoiceIndex];
+            
+            if (currentAnsLang === 'pl') utterance.lang = 'pl-PL';
+            else if (currentAnsLang === 'uk') utterance.lang = 'uk-UA';
+            else utterance.lang = 'en-US';
+
+            utterance.rate = speechRate;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function getNextDelay(answerText) {
+            const autoSpeed = document.getElementById('autoSpeedToggle')?.checked;
+            if (autoSpeed && answerText) {
+                const speakAnsEnabled = document.getElementById('speakAnsToggle')?.checked;
+                if (speakAnsEnabled) {
+                    const calculatedDelay = Math.ceil(500 + (answerText.length * 120 / speechRate));
+                    return Math.max(1000, calculatedDelay);
+                }
+            }
+            return currentMode === 'sprint' ? 400 : QRate / 4;
+        }
+
+        function normalize(str) {
+            if(!str) return "";
+            return str.toLowerCase()
+                .replace(/[’'‘`]/g, "'") 
+                .replace(/[.,\/#!$%\^&\*;:{}=\-_~()"?]/g, "") 
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function loadQuestionsFromTxt(file) {
+            if (!file) return;
+            file.text().then(text => {
+                questions = text.trim().split('\n').filter(l => l.includes(';') || l.includes('/')).map(line => {
+                    let delimiter = line.includes(';') ? ';' : '/';
+                    const parts = line.split(delimiter);
+                    return { word: parts[0].trim(), translation: parts[1].trim(), learned: false };
+                });
+                document.querySelectorAll('.mode-btn').forEach(b => b.disabled = false);
+                currentDictName = file.name;
+                currentGroupIndex = -1;
+                totalGroups = 0;
+                updateDictHeader();
+                resetAllInternal();
+            });
+        }
+
+        function clearBalloons() {
+            balloonIntervals.forEach(clearInterval);
+            balloonIntervals = [];
+            const stage = document.getElementById('balloonStage');
+            if(stage) stage.innerHTML = '';
+        }
+
+        function spawnBalloons(correctAnswer) {
+            clearBalloons();
+            const stage = document.getElementById('balloonStage');
+            let opts = [correctAnswer];
+            while(opts.length < 4 && opts.length < questions.length) {
+                let r = swapped ? questions[Math.floor(Math.random()*questions.length)].word : questions[Math.floor(Math.random()*questions.length)].translation;
+                if(!opts.includes(r)) opts.push(r);
+            }
+            opts.sort(() => Math.random() - 0.5);
+
+            const laneWidth = stage.offsetWidth / 4;
+
+            opts.forEach((text, i) => {
+                const b = document.createElement('div');
+                b.className = 'balloon';
+                b.innerText = text;
+                const laneX = (i * laneWidth) + (laneWidth - 85) / 2 + (Math.random() * 10 - 5);
+                b.style.left = laneX + 'px';
+                b.style.top = '-120px';
+                b.style.background = `hsl(${(i * 90) + Math.random()*30}, 70%, 55%)`;
+                
+                b.onclick = () => {
+                    if (normalize(text) === normalize(correctAnswer)) {
+                        playClickSound('correct');
+                        speakAnswerText(correctAnswer);
+                        score++; updateScore();
+                        b.classList.add('popped');
+                        setTimeout(nextQ, getNextDelay(correctAnswer));
+                    } else {
+                        playClickSound('wrong');
+                        scoreError++; updateScore();
+                        b.classList.add('wrong-shake');
+                        setTimeout(() => b.classList.remove('wrong-shake'), 300);
+                    }
+                };
+                stage.appendChild(b);
+
+                let currentTop = -120;
+                let speed = (0.3 + (1500 / QRate)) * (0.8 + Math.random() * 0.4);
+                let delay = Math.random() * 2000;
+
+                setTimeout(() => {
+                    let move = setInterval(() => {
+                        currentTop += speed;
+                        b.style.top = currentTop + 'px';
+                        if (currentTop > stage.offsetHeight) {
+                            if (normalize(text) === normalize(correctAnswer)) nextQ();
+                            b.remove();
+                            clearInterval(move);
+                        }
+                    }, 25);
+                    balloonIntervals.push(move);
+                }, delay);
+            });
+        }
+
+        function setMode(mode, hasTimer = false) {
+            resetAllInternal();
+            currentMode = mode;
+            builderMode = (mode === 'wordBuilder');
+            document.getElementById('balloonStage').style.display = (mode === 'balloons') ? 'block' : 'none';
+            if (hasTimer) {
+                timeLeft = 60;
+                document.getElementById('timerDisplay').style.display = 'block';
+                timer = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('timerDisplay').innerText = "Час: " + timeLeft;
+                    if (timeLeft <= 0) { clearInterval(timer); alert("Час вийшов!"); resetAllInternal(); }
+                }, 1000);
+            }
+            nextQ();
+        }
+
+        async function toggleCurrentWordLearned() {
+            if (currentQuestionIndex < 0 || currentQuestionIndex >= questions.length) return;
+            const q = questions[currentQuestionIndex];
+            q.learned = !q.learned;
+            if (q.id) {
+                await updateWordLearnedStatus(q.id, q.learned);
+            }
+            displayQuestion();
+        }
+
+        async function addCurrentWordToDB() {
+            if (currentQuestionIndex < 0 || currentQuestionIndex >= questions.length) return;
+            const q = questions[currentQuestionIndex];
+            
+            if (q.id) {
+                alert("Це слово вже знаходиться у вашій IndexedDB базі!");
+                return;
+            }
+
+            try {
+                const newId = await addSingleWordToDB(q.word, q.translation, "A1", "General", activeDictPair, q.learned || false);
+                q.id = newId;
+                alert(`Слово "${q.word}" успішно додано до IndexedDB!`);
+                displayQuestion();
+            } catch(e) {
+                alert("Помилка збереження слова у DB: " + e.message);
+            }
+        }
+
+        function getWordWithMissingChars(word) {
+            if (!word) return '';
+            let result = word.split('');
+            let validIndices = [];
+            
+            for(let i = 0; i < word.length; i++) {
+                if (/[a-zA-Zа-яА-ЯіІїЇєЄążśźęćńółĄŻŚŹĘĆŃÓŁ]/.test(word[i])) {
+                    validIndices.push(i);
+                }
+            }
+            
+            let countToHide = Math.max(1, Math.ceil(validIndices.length * 0.35));
+            let hidden = 0;
+            
+            while(hidden < countToHide && validIndices.length > 0) {
+                let r = Math.floor(Math.random() * validIndices.length);
+                let charIdx = validIndices[r];
+                result[charIdx] = '_';
+                validIndices.splice(r, 1);
+                hidden++;
+            }
+            return result.join('');
+        }
+
+        function displayQuestion() {
+            const container = document.getElementById('questionContainer');
+            if (!questions.length) return;
+            
+            const skipLearned = document.getElementById('skipLearnedToggle')?.checked;
+            if (skipLearned) {
+                const unlearnedCount = questions.filter(q => !q.learned).length;
+                if (unlearnedCount > 0) {
+                    let attempts = 0;
+                    while (questions[currentQuestionIndex]?.learned && attempts < questions.length) {
+                        currentQuestionIndex++;
+                        if (currentQuestionIndex >= questions.length) currentQuestionIndex = 0;
+                        attempts++;
+                    }
+                }
+            }
+
+            if (currentQuestionIndex < 0 || currentQuestionIndex >= questions.length) {
+                container.innerHTML = `<h3>Кінець! ✅</h3><button title="Почати вправу спочатку" onclick="resetAllInternal(); nextQ()">Знову</button>`;
+                clearBalloons();
+                return;
+            }
+            const q = questions[currentQuestionIndex];
+            const qText = swapped ? q.translation : q.word; 
+            const aText = swapped ? q.word : q.translation; 
+            const isHintActive = document.getElementById('hintToggle')?.checked;
+            
+            if (currentMode !== 'fillGaps' && !builderMode) speakText(qText);
+            
+            const replayBtnHtml = `<button class="replay-btn" title="Прослухати вимову слова" onclick="speakText('${qText.replace(/'/g, "\\'")}')">🔊</button>`;
+            
+            let actionButtonsHtml = `<div class="word-actions">`;
+            actionButtonsHtml += `<button title="${q.learned ? 'Забрати з вивчених' : 'Позначити як вивчене'}" class="action-btn-icon learned-btn ${q.learned ? 'is-learned' : ''}" onclick="toggleCurrentWordLearned()">✔</button>`;
+            if (q.id) {
+                actionButtonsHtml += `<button title="Вже збережено в DB" class="action-btn-icon add-db-btn in-db" disabled>+</button>`;
+            } else {
+                actionButtonsHtml += `<button title="Додати це слово до вашої IndexedDB" class="action-btn-icon add-db-btn" onclick="addCurrentWordToDB()">+</button>`;
+            }
+            actionButtonsHtml += `</div>`;
+
+            let contentHtml = `<h3><span>${qText}</span> ${replayBtnHtml}</h3>${actionButtonsHtml}`;
+            
+            if (currentMode === 'balloons') {
+                container.innerHTML = contentHtml;
+                spawnBalloons(aText);
+            } else if (builderMode || currentMode === 'wordBuilder') {
+                builderCurrentIndex = 0; builderWrongCount = 0;
+                const target = aText;
+                const letters = target.split('').sort(() => Math.random() - 0.5);
+                contentHtml = `<h3><span>${qText}</span> ${replayBtnHtml}</h3>${actionButtonsHtml}<input type="text" id="userInput" readonly placeholder="${isHintActive ? target : ''}"><div class="letter-pool"></div>`;
+                container.innerHTML = contentHtml;
+                const pool = container.querySelector('.letter-pool');
+                letters.forEach(l => {
+                    const btn = document.createElement('button');
+                    btn.className = `letter-btn ${l===' '?'space-btn':''}`;
+                    btn.innerText = l===' '?'␣':l;
+                    btn.title = `Натисніть букви " ${l} "`;
+                    btn.onclick = () => handleLetterClick(btn, l, target);
+                    pool.appendChild(btn);
+                });
+            } else if (currentMode === 'fillGaps') {
+                const targetWord = aText;
+                const questionWord = qText;
+                contentHtml = `<h3><span>${questionWord}</span> ${replayBtnHtml}</h3>${actionButtonsHtml}<div style="font-size:22px; letter-spacing:3px; margin:10px; font-family:monospace; text-align:center;">${getWordWithMissingChars(targetWord)}</div><input type="text" id="userInput" autofocus autocomplete="off" placeholder="${isHintActive ? targetWord : '...'}" onkeydown="if(event.key==='Enter') checkInput('${targetWord.replace(/'/g, "\\'")}')"><button style="background:#4CAF50; color:white;" id="actionBtn" title="Перевірити відповідь" onclick="checkInput('${targetWord.replace(/'/g, "\\'")}')">Ок</button>`;
+                container.innerHTML = contentHtml;
+            } else if (currentMode === 'flashcard') {
+                contentHtml = `<div class="card-scene"><div class="card" title="Натисніть для переворотy" onclick="this.classList.toggle('is-flipped'); if(this.classList.contains('is-flipped')) speakAnswerText('${aText.replace(/'/g, "\\'")}')"><div class="card__face card__face--front">${qText}</div><div class="card__face card__face--back">${aText}</div></div></div>${actionButtonsHtml}`;
+                container.innerHTML = contentHtml;
+            } else if (currentMode === 'trueFalse') {
+                const isCorrect = Math.random() > 0.5;
+                const displayA = isCorrect ? aText : (swapped ? questions[Math.floor(Math.random()*questions.length)].word : questions[Math.floor(Math.random()*questions.length)].translation);
+                contentHtml = `<h3><span>${qText} = ${displayA}?</span> ${replayBtnHtml}</h3>${actionButtonsHtml}<button class="answerBtn" title="Вибрати Правда" onclick="checkTF(this, ${isCorrect}, true, '${aText.replace(/'/g, "\\'")}')">Правда</button><button class="answerBtn" title="Вибрати Неправда" onclick="checkTF(this, ${isCorrect}, false, '${aText.replace(/'/g, "\\'")}')">Неправда</button>`;
+                container.innerHTML = contentHtml;
+            } else {
+                if (inputMode) {
+                    contentHtml += `<input type="text" id="userInput" autofocus autocomplete="off" placeholder="${isHintActive ? aText : '...'}" onkeydown="if(event.key==='Enter') checkInput('${aText.replace(/'/g, "\\'")}')"><button style="background:#4CAF50; color:white;" id="actionBtn" title="Перевірити відповідь" onclick="checkInput('${aText.replace(/'/g, "\\'")}')">Ок</button>`;
+                } else {
+                    let opts = [aText];
+                    while(opts.length < 4 && opts.length < questions.length) {
+                        let r = swapped ? questions[Math.floor(Math.random()*questions.length)].word : questions[Math.floor(Math.random()*questions.length)].translation;
+                        if(!opts.includes(r)) opts.push(r);
+                    }
+                    opts.sort(() => Math.random() - 0.5).forEach(o => { 
+                        contentHtml += `<button class="answerBtn" title="Вибрати варіант відповіді" onclick="checkBtn(this, '${aText.replace(/'/g, "\\'")}')">${o}</button>`; 
+                    });
+                }
+                container.innerHTML = contentHtml;
+            }
+
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.id = 'feedback';
+            container.appendChild(feedbackDiv);
+
+            const navHtml = document.createElement('div');
+            navHtml.className = 'nav-controls';
+            navHtml.innerHTML = `<button title="Попереднє питання" onclick="prevQ()">⬅</button><button title="Наступне питання" onclick="nextQ()">➡</button>`;
+            if (!(currentMode.includes('sprint') || currentMode === 'balloons')) {
+                container.appendChild(navHtml);
+            }
+
+            updateScore();
+            if ((inputMode || currentMode === 'fillGaps') && !builderMode) setTimeout(() => document.getElementById('userInput')?.focus(), 100);
+        }
+
+        function handleLetterClick(btn, char, target) {
+            const display = document.getElementById('userInput');
+            if (btn.classList.contains('wrong-letter')) return;
+
+            const simplify = (s) => s.toLowerCase().replace(/[’'‘`]/g, "'");
+            let targetChar = target[builderCurrentIndex];
+
+            if (simplify(char) === simplify(targetChar)) {
+                playClickSound('correct');
+                display.value += targetChar;
+                builderCurrentIndex++;
+                btn.style.visibility = 'hidden';
+                document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('wrong-letter'));
+                if (builderCurrentIndex >= target.length) {
+                    score++; updateScore(); speakAnswerText(target); setTimeout(nextQ, getNextDelay(target));
+                }
+            } else {
+                playClickSound('wrong');
+                btn.classList.add('wrong-letter');
+                builderWrongCount++; scoreError++; updateScore();
+                if (builderWrongCount >= 3) {
+                    document.getElementById('feedback').innerHTML = getColoredError(target);
+                    speakAnswerText(target);
+                }
+            }
+        }
+
+        function checkInput(correct) {
+            const input = document.getElementById('userInput');
+            if (!input) return;
+            if (normalize(input.value) === normalize(correct)) {
+                input.style.backgroundColor = "#2e7d32"; input.style.color = "white";
+                score++; updateScore(); speakAnswerText(correct);
+                setTimeout(nextQ, getNextDelay(correct));
+            } else {
+                input.style.backgroundColor = "#d32f2f"; input.style.color = "white";
+                document.getElementById('feedback').innerHTML = getColoredError(correct);
+                scoreError++; updateScore(); speakAnswerText(correct);
+                const btn = document.getElementById('actionBtn');
+                if (btn) {
+                    btn.innerText = "Далі"; 
+                    btn.onclick = nextQ;
+                }
+            }
+        }
+
+        function checkTF(btn, isCorrect, userChoice, correctText) {
+            if (isCorrect === userChoice) { 
+                btn.style.backgroundColor = "#2e7d32"; btn.style.color = "white";
+                score++; setTimeout(nextQ, getNextDelay(correctText)); 
+            } else { 
+                btn.style.backgroundColor = "#d32f2f"; btn.style.color = "white";
+                document.getElementById('feedback').innerHTML = getColoredError(correctText) + `<button title="Перейти до наступного слова" onclick="nextQ()" style="margin-top:10px; background:#555; color:white; width:80%;">Далі</button>`;
+                scoreError++; updateScore();
+            }
+            speakAnswerText(correctText);
+        }
+
+        function checkBtn(btn, correct) {
+            if (normalize(btn.innerText) === normalize(correct)) { 
+                btn.style.backgroundColor = "#2e7d32"; btn.style.color = "white";
+                score++; setTimeout(nextQ, getNextDelay(correct)); 
+            } else { 
+                btn.style.backgroundColor = "#d32f2f"; btn.style.color = "white";
+                document.getElementById('feedback').innerHTML = getColoredError(correct) + `<button title="Перейти до наступного слова" onclick="nextQ()" style="margin-top:10px; background:#555; color:white; width:80%;">Далі</button>`;
+                scoreError++; updateScore();
+            }
+            speakAnswerText(correct);
+        }
+
+        function nextQ() { 
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++; 
+            } else {
+                currentQuestionIndex = questions.length;
+            }
+            displayQuestion(); 
+        }
+
+        function prevQ() { if(currentQuestionIndex > 0) { currentQuestionIndex--; displayQuestion(); } }
+        
+        function resetAllInternal() {
+            clearInterval(timer); window.speechSynthesis.cancel();
+            clearBalloons();
+            currentQuestionIndex = 0; score = 0; scoreError = 0;
+            document.getElementById('timerDisplay').style.display = 'none';
+            document.getElementById('balloonStage').style.display = 'none';
+            document.getElementById('questionContainer').innerHTML = ''; 
+            updateScore();
+        }
+
+        function toggleBuilderMode() { builderMode = !builderMode; displayQuestion(); }
+        function toggleInputMode() { builderMode = false; inputMode = !inputMode; displayQuestion(); }
+        
+        function updateScore() { 
+            const total = questions.length || 0;
+            const current = (currentQuestionIndex < 0 || questions.length === 0) ? 0 : Math.min(currentQuestionIndex + 1, total);
+            document.getElementById('score').innerHTML = `✅ ${score} | ❌ <span style="color:red">${scoreError}</span><br><small>Питання: ${current}/${total}</small>`; 
+        }
+
+        function getColoredError(correct) {
+            return `<div class="error-hint"><span class="txt-red">Невірно!</span> <br> <span class="txt-purple">${correct}</span></div>`;
+        }
+
+        // --- СЛОВНИК ТА НАВІГАЦІЯ ---
+        function openDictionary() {
+            document.getElementById('dictModal').style.display = 'block';
+            // Підтягуємо збережений Groq ключ
+            const savedKey = localStorage.getItem('groq_api_key');
+            if (savedKey) {
+                document.getElementById('groqApiKeyInput').value = savedKey;
+            }
+            refreshDBFilters();
+        }
+
+        function openIndexedDBManager() {
+            document.getElementById('dictBookSelect').value = 'indexedDB';
+            openDictionary();
+        }
+
+        function updateDictHeader() {
+            const header = document.getElementById('dictInfoPanel');
+            const prevBtn = document.getElementById('prevGroupBtn');
+            const nextBtn = document.getElementById('nextGroupBtn');
+
+            if (currentDictName) {
+                let groupText = currentGroupIndex >= 0 ? ` — Група ${currentGroupIndex + 1}/${totalGroups}` : '';
+                header.innerText = `${currentDictName}${groupText}`;
+            } else {
+                header.innerText = '';
+            }
+
+            if (currentGroupIndex >= 0 && totalGroups > 0) {
+                prevBtn.style.display = 'inline-block';
+                nextBtn.style.display = 'inline-block';
+                prevBtn.disabled = currentGroupIndex === 0;
+                nextBtn.disabled = currentGroupIndex === totalGroups - 1;
+            } else {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            }
+        }
+
+        function changeGroup(direction) {
+            let newIndex = currentGroupIndex + direction;
+            if (newIndex >= 0 && newIndex < totalGroups) {
+                const pair = activeDictPair;
+                const bookChoice = document.getElementById('dictBookSelect').value;
+                if (bookChoice === 'indexedDB') {
+                    renderDictionaryGroups(newIndex);
+                } else {
+                    const rawData = (bookChoice === 'unit1') ? vocabularyList1 : vocabularyList2;
+                    const lines = rawData.trim().split('\n');
+                    const chunkSize = wordsPerGroup;
+                    const groupLines = lines.slice(newIndex * chunkSize, (newIndex + 1) * chunkSize);
+                    
+                    currentGroupIndex = newIndex;
+                    loadDictionaryGroup(groupLines, pair, newIndex, totalGroups);
+                }
+            }
+        }
+
+        // --- МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ СЛОВА ---
+        let editingWordId = null;
+
+        function openEditModal(id, word, translation, level, topic, langPair, learned) {
+            editingWordId = id;
+            document.getElementById('editWordInput').value = word;
+            document.getElementById('editTransInput').value = translation;
+            document.getElementById('editLevelInput').value = level || "A1";
+            document.getElementById('editTopicInput').value = topic || "General";
+            document.getElementById('editLangPairInput').value = langPair || "en-pl";
+            document.getElementById('editLearnedSelect').value = learned ? "true" : "false";
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        async function saveWordChanges() {
+            if (!editingWordId) return;
+            const word = document.getElementById('editWordInput').value.trim();
+            const trans = document.getElementById('editTransInput').value.trim();
+            const level = document.getElementById('editLevelInput').value.trim() || "A1";
+            const topic = document.getElementById('editTopicInput').value.trim() || "General";
+            const langPair = document.getElementById('editLangPairInput').value;
+            const learned = document.getElementById('editLearnedSelect').value === "true";
+
+            if (!word || !trans) {
+                alert("Поля Слова та Перекладу не можуть бути порожніми!");
+                return;
+            }
+
+            await updateWordInDB(editingWordId, word, trans, level, topic, langPair, learned);
+            document.getElementById('editModal').style.display = 'none';
+            editingWordId = null;
+            refreshDBFilters();
+        }
+
+        async function deleteDBWordPrompt(id, wordText) {
+            if (confirm(`Ви дійсно бажаєте видалити слово "${wordText}" з IndexedDB?`)) {
+                await deleteWordFromDB(id);
+                refreshDBFilters();
+            }
+        }
+
+        function updateWordsPerGroupVal() {
+            const val = parseInt(document.getElementById('wordsPerGroupInput').value);
+            if (val > 0) {
+                wordsPerGroup = val;
+                renderDictionaryGroups();
+            }
+        }
+
+        async function renderDictionaryGroups(autoLoadGroupIndex = -1) {
+            const container = document.getElementById('dictGroupsContainer');
+            container.innerHTML = '';
+            const pair = document.getElementById('dictPairSelect').value;
+            const bookChoice = document.getElementById('dictBookSelect').value;
+            
+            const wordsPerGroupVal = parseInt(document.getElementById('wordsPerGroupInput')?.value) || 20;
+            wordsPerGroup = wordsPerGroupVal;
+
+            if (bookChoice === 'indexedDB') {
+                currentDictName = "IndexedDB База даних";
+                activeDictPair = pair;
+                
+                const dbWords = await getAllDBWords();
+                const filterLevel = document.getElementById('dbFilterLevel')?.value || 'ALL';
+                const filterTopic = document.getElementById('dbFilterTopic')?.value || 'ALL';
+                const filterLangPair = document.getElementById('dbFilterLangPair')?.value || 'ALL';
+                const filterStatus = document.getElementById('dbFilterStatus')?.value || 'ALL';
+                const searchQuery = (document.getElementById('dbSearchInput')?.value || '').toLowerCase().trim();
+
+                let filtered = dbWords.filter(w => {
+                    if (filterLevel !== 'ALL' && (w.level || 'A1').toUpperCase() !== filterLevel) return false;
+                    if (filterTopic !== 'ALL' && (w.topic || 'General') !== filterTopic) return false;
+                    if (filterLangPair !== 'ALL' && (w.langPair || 'en-pl').toLowerCase() !== filterLangPair.toLowerCase()) return false;
+                    if (filterStatus === 'LEARNED' && !w.learned) return false;
+                    if (filterStatus === 'UNLEARNED' && w.learned) return false;
+                    if (searchQuery) {
+                        const wordMatch = (w.word || '').toLowerCase().includes(searchQuery);
+                        const transMatch = (w.translation || '').toLowerCase().includes(searchQuery);
+                        if (!wordMatch && !transMatch) return false;
+                    }
+                    return true;
+                });
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `<p style="text-align:center; opacity:0.7;">Не знайдено слів із задекларованими фільтрами у базі IndexedDB.</p>`;
+                    return;
+                }
+
+                const chunkSize = wordsPerGroup;
+                totalGroups = Math.ceil(filtered.length / chunkSize);
+
+                if (autoLoadGroupIndex >= 0 && autoLoadGroupIndex < totalGroups) {
+                    const groupItems = filtered.slice(autoLoadGroupIndex * chunkSize, (autoLoadGroupIndex + 1) * chunkSize);
+                    loadDBGroup(groupItems, pair, autoLoadGroupIndex, totalGroups);
+                    return;
+                }
+
+                for (let i = 0; i < filtered.length; i += chunkSize) {
+                    const groupItems = filtered.slice(i, i + chunkSize);
+                    const groupIndex = i / chunkSize;
+                    const groupDiv = document.createElement('div');
+                    groupDiv.style.borderBottom = "1px solid var(--border-color)";
+                    groupDiv.style.padding = "10px 0";
+
+                    let listHtml = `<h4 style="margin:0 0 5px 0; color:#2196F3;">Група ${groupIndex + 1} (${groupItems.length} слів)</h4>`;
+                    
+                    groupItems.forEach(w => {
+                        const escWord = (w.word || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        const escTrans = (w.translation || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        const escTopic = (w.topic || 'General').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        const lp = (w.langPair || 'en-pl').toUpperCase();
+                        
+                        listHtml += `<div class="db-item-row">
+                            <span style="font-size:12px; line-height:1.3;">
+                                <strong>${w.word}</strong> - ${w.translation} 
+                                <br><small style="opacity:0.7;">[${w.level || 'A1'} | ${w.topic || 'General'} | ${lp}] ${w.learned ? '✔ Вивчено' : '❌ Не вивчено'}</small>
+                            </span>
+                            <div class="db-item-ops">
+                                <button class="db-op-btn" id="ai-btn-${w.id}" title="Автовизначення рівня та теми через ШІ (Groq)" onclick="autoDetectWordAI(${w.id}, '${escWord}', '${escTrans}')" style="background:#e3f2fd; color:#0d47a1;">🤖</button>
+                                <button class="db-op-btn" title="Редагувати слово" onclick="openEditModal(${w.id}, '${escWord}', '${escTrans}', '${w.level || 'A1'}', '${escTopic}', '${w.langPair || 'en-pl'}', ${w.learned})">✏️</button>
+                                <button class="db-op-btn" style="background:#ffebee; color:#d32f2f;" title="Видалити слово" onclick="deleteDBWordPrompt(${w.id}, '${escWord}')">🗑</button>
+                            </div>
+                        </div>`;
+                    });
+
+                    groupDiv.innerHTML = listHtml;
+
+                    const btn = document.createElement('button');
+                    btn.innerText = "Вивчити цю групу";
+                    btn.style.fontSize = "12px";
+                    btn.style.padding = "6px 12px";
+                    btn.style.marginTop = "8px";
+                    btn.onclick = () => loadDBGroup(groupItems, pair, groupIndex, totalGroups);
+                    groupDiv.appendChild(btn);
+
+                    container.appendChild(groupDiv);
+                }
+                return;
+            }
+
+            const bookSelectElem = document.getElementById('dictBookSelect');
+            currentDictName = bookSelectElem.options[bookSelectElem.selectedIndex].text;
+            activeDictPair = pair;
+            
+            const rawData = (bookChoice === 'unit1') ? vocabularyList1 : vocabularyList2;
+            const lines = rawData.trim().split('\n');
+            const chunkSize = wordsPerGroup;
+            totalGroups = Math.ceil(lines.length / chunkSize);
+            
+            for (let i = 0; i < lines.length; i += chunkSize) {
+                const groupLines = lines.slice(i, i + chunkSize);
+                const groupIndex = i / chunkSize;
+                const groupDiv = document.createElement('div');
+                groupDiv.style.borderBottom = "1px solid var(--border-color)";
+                groupDiv.style.padding = "10px 0";
+                
+                let preview = groupLines.slice(0, 3).map(l => {
+                    let p = l.split(';');
+                    if(pair === 'en-pl') return `${p[0]} - ${p[1]}`;
+                    if(pair === 'en-uk') return `${p[0]} - ${p[2]}`;
+                    return `${p[1]} - ${p[2]}`;
+                }).join('<br>');
+                
+                groupDiv.innerHTML = `<h4 style="margin:0 0 5px 0; color:#2196F3;">Група ${groupIndex + 1} (${groupLines.length} слів)</h4>
+                                      <div style="font-size:12px; opacity:0.8; margin-bottom:8px;">${preview}...</div>`;
+                
+                const btn = document.createElement('button');
+                btn.innerText = "Вивчити";
+                btn.style.fontSize = "12px";
+                btn.style.padding = "6px 12px";
+                btn.onclick = () => loadDictionaryGroup(groupLines, pair, groupIndex, totalGroups);
+                groupDiv.appendChild(btn);
+                
+                container.appendChild(groupDiv);
+            }
+        }
+
+        function loadDBGroup(groupItems, pair, groupIndex = -1, total = 0) {
+            questions = groupItems.map(item => ({
+                id: item.id,
+                word: item.word,
+                translation: item.translation,
+                learned: item.learned || false
+            }));
+
+            if (pair === 'en-pl') { baseSourceLang = 'en'; baseTargetLang = 'pl'; }
+            else if (pair === 'en-uk') { baseSourceLang = 'en'; baseTargetLang = 'uk'; }
+            else if (pair === 'pl-uk') { baseSourceLang = 'pl'; baseTargetLang = 'uk'; }
+            
+            updateEffectiveLangs();
+            
+            currentGroupIndex = groupIndex;
+            totalGroups = total;
+            updateDictHeader();
+
+            populateVoices();
+            document.querySelectorAll('.mode-btn').forEach(b => b.disabled = false);
+            document.getElementById('dictModal').style.display = 'none';
+            resetAllInternal();
+            displayQuestion();
+        }
+
+        function loadDictionaryGroup(groupLines, pair, groupIndex = -1, total = 0) {
+            questions = groupLines.map(line => {
+                const p = line.split(';');
+                let w, t;
+                if(pair === 'en-pl') { w = p[0]; t = p[1]; }
+                else if(pair === 'en-uk') { w = p[0]; t = p[2]; }
+                else if(pair === 'pl-uk') { w = p[1]; t = p[2]; }
+                return { word: w.trim(), translation: t.trim(), learned: false };
+            });
+            
+            if (pair === 'en-pl') { baseSourceLang = 'en'; baseTargetLang = 'pl'; }
+            else if (pair === 'en-uk') { baseSourceLang = 'en'; baseTargetLang = 'uk'; }
+            else if (pair === 'pl-uk') { baseSourceLang = 'pl'; baseTargetLang = 'uk'; }
+            
+            updateEffectiveLangs();
+            
+            currentGroupIndex = groupIndex;
+            totalGroups = total;
+            updateDictHeader();
+
+            populateVoices();
+            document.querySelectorAll('.mode-btn').forEach(b => b.disabled = false);
+            document.getElementById('dictModal').style.display = 'none';
+            resetAllInternal();
+            displayQuestion();
+        }
+
+        // --- ІМПОРТ, ЕКСПОРТ ТА РУЧНЕ ДОДАВАННЯ ---
+        async function createNewWordInDB() {
+            const word = document.getElementById('newWordInput').value.trim();
+            const translation = document.getElementById('newTransInput').value.trim();
+            const level = document.getElementById('newLevelInput').value.trim() || "A1";
+            const topic = document.getElementById('newTopicInput').value.trim() || "General";
+            const langPair = document.getElementById('newLangPairInput').value;
+
+            if (!word || !translation) {
+                alert("Будь ласка, введіть і слово, і його переклад!");
+                return;
+            }
+
+            try {
+                await addSingleWordToDB(word, translation, level, topic, langPair, false);
+                alert(`Слово "${word}" збережено у базу (${langPair.toUpperCase()})!`);
+                document.getElementById('newWordInput').value = '';
+                document.getElementById('newTransInput').value = '';
+                refreshDBFilters();
+            } catch(e) {
+                alert("Помилка збереження: " + e.message);
+            }
+        }
+
+        async function exportDBData(format) {
+            const words = await getAllDBWords();
+            if (words.length === 0) {
+                alert("База даних порожня! Немає що експортувати.");
+                return;
+            }
+
+            let fileContent = "";
+            let mimeType = "text/plain";
+            let fileName = `backup_words_${new Date().toISOString().slice(0,10)}`;
+
+            if (format === 'json') {
+                const cleanData = words.map(w => ({
+                    word: w.word,
+                    translation: w.translation,
+                    level: w.level || "A1",
+                    topic: w.topic || "General",
+                    langPair: w.langPair || "en-pl",
+                    learned: Boolean(w.learned)
+                }));
+                fileContent = JSON.stringify(cleanData, null, 2);
+                mimeType = "application/json";
+                fileName += ".json";
+            } else if (format === 'txt') {
+                fileContent = words.map(w => `${w.word};${w.translation};${w.level || "A1"};${w.topic || "General"};${w.langPair || "en-pl"};${w.learned ? 'learned' : 'unlearned'}`).join('\n');
+                mimeType = "text/plain";
+                fileName += ".txt";
+            }
+
+            const blob = new Blob([fileContent], { type: mimeType });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        async function processDBImportFile() {
+            const input = document.getElementById('dbFileInput');
+            if (!input.files || !input.files[0]) {
+                alert("Будь ласка, оберіть файл!");
+                return;
+            }
+            const file = input.files[0];
+            const text = await file.text();
+            let parsed = [];
+
+            try {
+                if (file.name.endsWith('.json')) {
+                    parsed = JSON.parse(text);
+                } else {
+                    const lines = text.trim().split('\n');
+                    parsed = lines.map(line => {
+                        const parts = line.split(';');
+                        const statusPart = parts[5] ? parts[5].trim().toLowerCase() : (parts[4] ? parts[4].trim().toLowerCase() : '');
+                        const isLearned = (statusPart === 'learned' || statusPart === 'true' || statusPart === '1');
+                        
+                        let pair = "en-pl";
+                        if (parts[4] && parts[4].includes('-')) pair = parts[4].trim();
+
+                        return {
+                            word: parts[0] || "",
+                            translation: parts[1] || "",
+                            level: parts[2] || "A1",
+                            topic: parts[3] || "General",
+                            langPair: pair,
+                            learned: isLearned
+                        };
+                    });
+                }
+
+                if (!Array.isArray(parsed) || parsed.length === 0) {
+                    alert("Помилка! Файл порожній або має некоректний формат.");
+                    return;
+                }
+
+                await saveWordsToDB(parsed);
+                alert(`Успішно завантажено ${parsed.length} слів у базу IndexedDB!`);
+                input.value = '';
+                refreshDBFilters();
+            } catch (err) {
+                alert("Помилка обробки файлу: " + err.message);
+            }
+        }
+
+        async function openStatsModal() {
+            const container = document.getElementById('statsContainer');
+            container.innerHTML = "Завантаження...";
+            document.getElementById('statsModal').style.display = 'block';
+
+            const words = await getAllDBWords();
+            if (words.length === 0) {
+                container.innerHTML = "<p>База даних IndexedDB порожня.</p>";
+                return;
+            }
+
+            const statsByLevel = {};
+            words.forEach(w => {
+                const lvl = (w.level || "Невідомо").toUpperCase();
+                if (!statsByLevel[lvl]) {
+                    statsByLevel[lvl] = { total: 0, learned: 0 };
+                }
+                statsByLevel[lvl].total++;
+                if (w.learned) statsByLevel[lvl].learned++;
+            });
+
+            let html = `<table style="width:100%; border-collapse:collapse; text-align:left;">
+                <thead>
+                    <tr style="border-bottom:2px solid var(--border-color);">
+                        <th style="padding:8px;">Рівень</th>
+                        <th style="padding:8px;">Завантажено</th>
+                        <th style="padding:8px;">Вивчено</th>
+                        <th style="padding:8px;">Прогрес</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            let grandTotal = 0;
+            let grandLearned = 0;
+
+            Object.keys(statsByLevel).sort().forEach(lvl => {
+                const item = statsByLevel[lvl];
+                grandTotal += item.total;
+                grandLearned += item.learned;
+                const pct = item.total > 0 ? Math.round((item.learned / item.total) * 100) : 0;
+                html += `<tr style="border-bottom:1px solid var(--border-color);">
+                    <td style="padding:8px; font-weight:bold;">${lvl}</td>
+                    <td style="padding:8px;">${item.total}</td>
+                    <td style="padding:8px; color:green;">${item.learned}</td>
+                    <td style="padding:8px;">${pct}%</td>
+                </tr>`;
+            });
+
+            const grandPct = grandTotal > 0 ? Math.round((grandLearned / grandTotal) * 100) : 0;
+            html += `<tr style="font-weight:bold; background:rgba(33,150,243,0.1);">
+                <td style="padding:8px;">Всього</td>
+                <td style="padding:8px;">${grandTotal}</td>
+                <td style="padding:8px; color:green;">${grandLearned}</td>
+                <td style="padding:8px;">${grandPct}%</td>
+            </tr></tbody></table>`;
+
+            container.innerHTML = html;
+        }
+
+        async function refreshDBFilters() {
+            const isDB = document.getElementById('dictBookSelect').value === 'indexedDB';
+            const dbFiltersDiv = document.getElementById('dbFilters');
+            dbFiltersDiv.style.display = isDB ? 'block' : 'none';
+
+            if (isDB) {
+                const words = await getAllDBWords();
+                const levels = new Set(['ALL']);
+                const topics = new Set(['ALL']);
+                const langPairs = new Set(['ALL']);
+
+                words.forEach(w => {
+                    if (w.level) levels.add(w.level.toUpperCase());
+                    if (w.topic) topics.add(w.topic);
+                    if (w.langPair) langPairs.add(w.langPair.toLowerCase());
+                });
+
+                const levelSelect = document.getElementById('dbFilterLevel');
+                const topicSelect = document.getElementById('dbFilterTopic');
+                const langPairSelect = document.getElementById('dbFilterLangPair');
+
+                const curLvl = levelSelect.value || 'ALL';
+                const curTop = topicSelect.value || 'ALL';
+                const curLP = langPairSelect.value || 'ALL';
+
+                levelSelect.innerHTML = Array.from(levels).map(l => `<option value="${l}">${l === 'ALL' ? 'Всі рівні' : l}</option>`).join('');
+                topicSelect.innerHTML = Array.from(topics).map(t => `<option value="${t}">${t === 'ALL' ? 'Всі теми' : t}</option>`).join('');
+                langPairSelect.innerHTML = Array.from(langPairs).map(p => `<option value="${p}">${p === 'ALL' ? 'Всі мовні пари' : p.toUpperCase()}</option>`).join('');
+
+                levelSelect.value = levels.has(curLvl) ? curLvl : 'ALL';
+                topicSelect.value = topics.has(curTop) ? curTop : 'ALL';
+                langPairSelect.value = langPairs.has(curLP) ? curLP : 'ALL';
+            }
+
+            renderDictionaryGroups();
+        }
+
+        async function handleClearDB() {
+            if (confirm("Ви впевнені, що хочете повністю очистити базу даних IndexedDB?")) {
+                await clearDB();
+                alert("Базу даних очищено.");
+                refreshDBFilters();
+            }
+        }
+
+        function toggleSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initDB();
+        });
+    </script>
+</head>
+<body>
+    <div style="width:100%; max-width:500px; display:flex; flex-direction:column; align-items:center;">
+        
+        <div style="display: flex; gap: 6px; margin-bottom: 10px; width: 95%; justify-content: center; align-items: center; flex-wrap: wrap;">
+            <input type="file" accept=".txt" onchange="if(this.files && this.files[0]) loadQuestionsFromTxt(this.files[0])" style="font-size:11px; max-width: 35%;">
+            <button class="mode-btn" onclick="openDictionary()" style="background:#fff3e0; color:#333; border:1px solid #ffb74d; margin:0;">📚 Словник</button>
+            <button class="mode-btn" onclick="openIndexedDBManager()" style="background:#f3e5f5; color:#333; border:1px solid #ba68c8; margin:0;">🔍 Перегляд DB</button>
+            <button class="mode-btn" onclick="openStatsModal()" style="background:#e1f5fe; color:#333; border:1px solid #4fc3f7; margin:0;">📊 Статистика</button>
+            <button class="mode-btn" onclick="toggleTheme()" style="margin:0;">🌙 Тема</button>
+        </div>
+        
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-bottom: 8px;">
+            <button class="mode-btn" onclick="setMode('standard')" disabled>Стандарт</button>
+            <button class="mode-btn" onclick="setMode('balloons')" disabled style="background:#e3f2fd; color:#333; border:1px solid #2196f3;">🎈 Кульки</button>
+            <button class="mode-btn" onclick="setMode('wordBuilder')" disabled>Скласти</button>
+            <button class="mode-btn" onclick="setMode('fillGaps')" disabled>Букви</button>
+            <button class="mode-btn" onclick="setMode('sprint', true)" disabled>Спринт</button>
+            <button class="mode-btn" onclick="setMode('flashcard')" disabled>Картки</button>
+            <button class="mode-btn" onclick="setMode('trueFalse')" disabled>Так/Ні</button>
+        </div>
+
+        <div id="timerDisplay" style="font-weight:bold; color:orange; margin:5px; display:none; font-size:14px;">Час: 60</div>
+        
+        <div style="display: flex; flex-direction: row; width: 100%; justify-content: center; align-items: center; gap: 2px; margin-bottom: 8px;">
+            <button class="ctrl-btn" onclick="resetAllInternal()" style="background:#eee; color:#333;">Скинути</button>
+            <button class="ctrl-btn" onclick="toggleSwap()" style="background:#e1f5fe; color:#333;">Swap</button>
+            <button class="ctrl-btn" onclick="toggleInputMode()" style="background:#fff3e0; color:#333;">Ввід</button>
+            <button class="ctrl-btn" onclick="toggleBuilderMode()" style="background:#f3e5f5; color:#333; border:1px solid #8e24aa;">Букви</button>
+        </div>
+
+        <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 5px;">
+            <button id="prevGroupBtn" class="group-nav-btn" onclick="changeGroup(-1)" style="display:none;">◄ Група</button>
+            <button id="nextGroupBtn" class="group-nav-btn" onclick="changeGroup(1)" style="display:none;">Група ►</button>
+        </div>
+
+        <div id="dictInfoPanel"></div>
+        
+        <div style="display:flex; gap:12px; margin-bottom: 8px;">
+            <label style="font-size: 12px;">
+                <input type="checkbox" id="hintToggle" onchange="displayQuestion()"> Підказка
+            </label>
+            <label style="font-size: 12px; font-weight:bold; color:#d32f2f;">
+                <input type="checkbox" id="skipLearnedToggle" onchange="displayQuestion()"> 🚫 Не повторювати вивчені
+            </label>
+        </div>
+
+        <div id="score">✅ 0 | ❌ 0<br><small>Оберіть .txt файл або Словник</small></div>
+        
+        <div id="questionContainer"></div> 
+        
+        <div id="balloonStage"></div>
+
+        <div class="settings-panel">
+            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 10px;">
+                <strong>Голос питання:</strong><br>
+                <button class="lang-toggle" onclick="toggleLang()">Мова: <span id="langBtn">EN</span> ⇄</button>
+                <select id="voiceSelect" onchange="selectedVoiceIndex=this.value" style="font-size:11px;"></select>
+            </div>
+
+            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 10px;">
+                <label style="font-weight: bold;">
+                    <input type="checkbox" id="speakAnsToggle" checked> 🔊 Озвучувати відповідь
+                </label>
+                <div style="margin-top: 5px;">
+                    <button class="lang-toggle" onclick="toggleAnsLang()">Мова: <span id="ansLangBtn">PL</span> ⇄</button>
+                    <select id="ansVoiceSelect" onchange="selectedAnsVoiceIndex=this.value" style="font-size:11px;"></select>
+                </div>
+            </div>
+
+            <div style="margin-top:5px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #2196F3;">
+                    <input type="checkbox" id="autoSpeedToggle" checked> ⏱️ Авто-швидкість гри (за довжиною відповіді)
+                </label>
+                <label>Швидкість озвучки: <span id="rateVal" class="slider-val">1x</span><input type="range" min="0.5" max="2" value="1" step="0.1" oninput="speechRate=this.value; document.getElementById('rateVal').innerText=this.value+'x'"></label>
+                <label>Швидкість гри: <span id="qRateValue" class="slider-val">3.5с</span><input type="range" min="500" max="15000" value="3500" step="500" oninput="QRate=this.value; document.getElementById('qRateValue').innerText=(this.value/1000).toFixed(1)+'с'"></label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно Словника / Перегляду та Керування IndexedDB -->
+    <div id="dictModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--modal-bg); z-index:1000; overflow-y:auto; padding:20px; box-sizing:border-box;">
+        <div style="background:var(--modal-content-bg); color:var(--text-color); border-radius:15px; padding:20px; max-width:600px; margin:0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            <div class="modal-header">
+                <h2>📚 Словник та Перегляд IndexedDB</h2>
+                <button class="close-icon-btn" onclick="document.getElementById('dictModal').style.display='none'" title="Закрити">✖</button>
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 14px;"><strong>Оберіть джерело слів:</strong></label>
+                <select id="dictBookSelect" onchange="refreshDBFilters()">
+                    <option value="unit1">Unit 01: Appearance & Fashion</option>
+                    <option value="unit3" selected>Unit 03: Travel & Holidays</option>
+                    <option value="indexedDB">💾 База даних IndexedDB</option>
+                </select>
+            </div>
+
+            <!-- Розбиття на групи за кількості слів -->
+            <div style="margin-bottom: 12px; display:flex; align-items:center; gap:10px;">
+                <label style="font-size: 13px; font-weight:bold;">Кількість слів у групі:</label>
+                <input type="number" id="wordsPerGroupInput" value="20" min="1" max="500" style="width:80px; margin:0; padding:4px;" onchange="updateWordsPerGroupVal()">
+            </div>
+
+            <!-- Панель керування IndexedDB (Фільтрація, Додавання, Імпорт/Експорт) -->
+            <div id="dbFilters" style="display:none; background:rgba(0,0,0,0.04); padding:10px; border-radius:10px; margin-bottom:12px;">
+                
+                <!-- Налаштування Groq API Ключа для ШІ -->
+                <div style="background:rgba(33,150,243,0.1); padding:8px; border-radius:8px; margin-bottom:10px; border:1px dashed #2196F3;">
+                    <label style="font-size: 12px; font-weight:bold; color:#2196F3;">🔑 Groq API Ключ (для автовизначення ШІ):</label>
+                    <input type="password" id="groqApiKeyInput" placeholder="Введіть gsk_..." onchange="localStorage.setItem('groq_api_key', this.value.trim())" style="width:100%; font-size:12px; padding:5px; margin-top:4px;">
+                    <small style="font-size:10px; opacity:0.8; display:block; margin-top:2px;">Безкоштовний ключ можна отримати на console.groq.com</small>
+                </div>
+
+                <label style="font-size: 12px; font-weight:bold;">🔍 Пошук та фільтри IndexedDB:</label>
+                <input type="text" id="dbSearchInput" placeholder="Пошук за словом чи перекладом..." oninput="renderDictionaryGroups()" style="width:100%; font-size:13px; padding:6px; margin:6px 0;">
+                
+                <div style="display:flex; gap:5px; margin-top:5px; flex-wrap:wrap;">
+                    <select id="dbFilterLangPair" onchange="renderDictionaryGroups()" style="flex:1; font-size:12px;"></select>
+                    <select id="dbFilterLevel" onchange="renderDictionaryGroups()" style="flex:1; font-size:12px;"></select>
+                    <select id="dbFilterTopic" onchange="renderDictionaryGroups()" style="flex:1; font-size:12px;"></select>
+                    <select id="dbFilterStatus" onchange="renderDictionaryGroups()" style="flex:1; font-size:12px;">
+                        <option value="ALL">Всі слова</option>
+                        <option value="UNLEARNED">Невивчені</option>
+                        <option value="LEARNED">Вивчені</option>
+                    </select>
+                </div>
+
+                <!-- Блок додаткових інструментів IndexedDB -->
+                <div style="margin-top:10px; border-top: 1px dashed var(--border-color); padding-top:10px;">
+                    <!-- Секція ручного додавання -->
+                    <div class="collapsible-section">
+                        <div class="collapsible-title" onclick="toggleSection('addWordForm')">
+                            <span>➕ Додати нове слово</span>
+                            <small>▼</small>
+                        </div>
+                        <div id="addWordForm" style="display:none; margin-top:8px;">
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <input type="text" id="newWordInput" placeholder="Слово (напр. apple)" style="width:100%; font-size:13px; padding:6px; margin:0;">
+                                <input type="text" id="newTransInput" placeholder="Переклад (напр. яблуко)" style="width:100%; font-size:13px; padding:6px; margin:0;">
+                                <div style="display:flex; gap:5px; width:100%;">
+                                    <input type="text" id="newLevelInput" placeholder="Рівень (A1)" style="flex:1; font-size:13px; padding:6px; margin:0;">
+                                    <input type="text" id="newTopicInput" placeholder="Тема (Food)" style="flex:1; font-size:13px; padding:6px; margin:0;">
+                                </div>
+                                <select id="newLangPairInput" style="font-size:12px; padding:6px;">
+                                    <option value="en-pl">Англійська ⇄ Польська (EN-PL)</option>
+                                    <option value="en-uk">Англійська ⇄ Українська (EN-UK)</option>
+                                    <option value="pl-uk">Польська ⇄ Українська (PL-UK)</option>
+                                </select>
+                                <button onclick="createNewWordInDB()" style="background:#4CAF50; color:white; font-size:12px; padding:8px; margin-top:5px; width:100%;">Зберегти у DB</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Секція імпорту та резервних копій -->
+                    <div class="collapsible-section">
+                        <div class="collapsible-title" onclick="toggleSection('importExportForm')">
+                            <span>📥 Імпорт / Експорт (Бекап)</span>
+                            <small>▼</small>
+                        </div>
+                        <div id="importExportForm" style="display:none; margin-top:8px; font-size:12px;">
+                            <label style="display:block; margin-bottom:5px;"><strong>Імпорт з файлу (.json, .txt, .csv):</strong></label>
+                            <input type="file" id="dbFileInput" accept=".json, .txt, .csv" style="width:100%; margin-bottom:8px; font-size:11px;">
+                            
+                            <div style="display:flex; gap:5px; margin-bottom:10px;">
+                                <button onclick="processDBImportFile()" style="background:#2196F3; color:white; flex:1; font-size:12px; padding:6px;">Завантажити файл</button>
+                                <button onclick="handleClearDB()" style="background:#d32f2f; color:white; flex:1; font-size:12px; padding:6px;">Очистити DB</button>
+                            </div>
+
+                            <label style="display:block; margin-bottom:5px;"><strong>Експорт бекапу:</strong></label>
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="exportDBData('json')" style="background:#009688; color:white; flex:1; font-size:12px; padding:6px;">Eкспорт JSON</button>
+                                <button onclick="exportDBData('txt')" style="background:#ff9800; color:white; flex:1; font-size:12px; padding:6px;">Експорт TXT</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 14px;"><strong>Оберіть мовну пару для вивчення:</strong></label>
+                <select id="dictPairSelect" onchange="renderDictionaryGroups()">
+                    <option value="en-pl">Англійська ⇄ Польська</option>
+                    <option value="en-uk">Англійська ⇄ Українська</option>
+                    <option value="pl-uk">Польська ⇄ Українська</option>
+                </select>
+            </div>
+            
+            <div id="dictGroupsContainer"></div>
+            
+            <button onclick="document.getElementById('dictModal').style.display='none'" style="background:#333; color:white; width:100%; margin-top:20px;">Закрити</button>
+        </div>
+    </div>
+
+    <!-- Модальне вікно Форми Редагування Запису IndexedDB -->
+    <div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--modal-bg); z-index:1100; overflow-y:auto; padding:20px; box-sizing:border-box;">
+        <div style="background:var(--modal-content-bg); color:var(--text-color); border-radius:15px; padding:20px; max-width:450px; margin:40px auto 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+            <div class="modal-header">
+                <h2>✏️ Редагувати слово</h2>
+                <button class="close-icon-btn" onclick="document.getElementById('editModal').style.display='none'" title="Закрити">✖</button>
+            </div>
+
+            <div class="edit-form-group">
+                <label>Слово / Вираз:</label>
+                <input type="text" id="editWordInput">
+            </div>
+
+            <div class="edit-form-group">
+                <label>Переклад:</label>
+                <input type="text" id="editTransInput">
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <div class="edit-form-group" style="flex:1;">
+                    <label>Рівень:</label>
+                    <input type="text" id="editLevelInput" placeholder="A1">
+                </div>
+                <div class="edit-form-group" style="flex:1;">
+                    <label>Тема:</label>
+                    <input type="text" id="editTopicInput" placeholder="General">
+                </div>
+            </div>
+
+            <div class="edit-form-group">
+                <label>Мовна пара (Шифр):</label>
+                <select id="editLangPairInput">
+                    <option value="en-pl">Англійська ⇄ Польська (EN-PL)</option>
+                    <option value="en-uk">Англійська ⇄ Українська (EN-UK)</option>
+                    <option value="pl-uk">Польська ⇄ Українська (PL-UK)</option>
+                </select>
+            </div>
+
+            <div class="edit-form-group">
+                <label>Статус вивчення:</label>
+                <select id="editLearnedSelect">
+                    <option value="false">❌ Не вивчено</option>
+                    <option value="true">✔ Вивчено</option>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button onclick="saveWordChanges()" style="background:#4CAF50; color:white; flex:1;">Зберегти</button>
+                <button onclick="document.getElementById('editModal').style.display='none'" style="background:#777; color:white; flex:1;">Скасувати</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно Статистики DB -->
+    <div id="statsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--modal-bg); z-index:1000; overflow-y:auto; padding:20px; box-sizing:border-box;">
+        <div style="background:var(--modal-content-bg); color:var(--text-color); border-radius:15px; padding:20px; max-width:600px; margin:0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            <div class="modal-header">
+                <h2>📊 Статистика слів у IndexedDB</h2>
+                <button class="close-icon-btn" onclick="document.getElementById('statsModal').style.display='none'" title="Закрити">✖</button>
+            </div>
+            
+            <div id="statsContainer"></div>
+
+            <button onclick="document.getElementById('statsModal').style.display='none'" style="background:#333; color:white; width:100%; margin-top:20px;">Закрити</button>
+        </div>
+    </div>
+</body>
+</html>
